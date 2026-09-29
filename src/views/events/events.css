@@ -1,0 +1,128 @@
+.rf-calendar .rf-panel-heading h2 {
+  text-transform: capitalize;
+  font-size: 16px;
+}
+.rf-calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 5px;
+}
+.rf-calendar-weekday {
+  font-size: 10px;
+  text-align: center;
+  color: #a398ad;
+  letter-spacing: 0.7px;
+  padding: 8px;
+}
+.rf-calendar-day {
+  min-height: 95px;
+  border: 1px solid #ffffff0a;
+  background: #ffffff03;
+  border-radius: 8px;
+  padding: 7px;
+  min-width: 0;
+}
+.rf-calendar-day > span {
+  font-size: 11px;
+  color: #afa2bb;
+}
+.rf-calendar-outside {
+  border-color: transparent;
+  background: transparent;
+}
+.rf-calendar-day button {
+  display: block;
+  width: 100%;
+  font-size: 10px;
+  text-align: left;
+  padding: 5px;
+  border: 0;
+  border-radius: 4px;
+  background: #0097a930;
+  color: #96e1ec;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-top: 5px;
+}
+.rf-calendar-day button.rf-event-cancelled {
+  text-decoration: line-through;
+  color: #ff9b9b;
+  background: #ff7a7a15;
+}
+.rf-event-list {
+  padding: 0 20px;
+}
+.rf-event-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 22px 0;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: 0;
+  border-bottom: 1px solid var(--rf-border);
+  color: var(--rf-text);
+}
+.rf-event-row:last-child {
+  border: 0;
+}
+.rf-event-row > span:first-child {
+  color: #7fd3e0;
+  width: 115px;
+  flex-shrink: 0;
+  font-size: 12px;
+}
+.rf-event-row > div {
+  flex: 1;
+}
+.rf-event-row h2 {
+  font-size: 14px;
+  margin: 0 0 5px;
+}
+.rf-event-row p {
+  font-size: 11px;
+  margin: 0;
+}
+.rf-event-preview {
+  display: flex;
+  gap: 20px;
+  padding-top: 15px;
+}
+.rf-event-preview > span {
+  color: #7fd3e0;
+  max-width: 90px;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+.rf-event-preview p {
+  font-size: 12px;
+}
+@media (max-width: 600px) {
+  .rf-calendar {
+    padding: 12px;
+  }
+  .rf-calendar-grid {
+    gap: 3px;
+  }
+  .rf-calendar-day {
+    min-height: 73px;
+    padding: 4px 2px;
+  }
+  .rf-calendar-day button {
+    font-size: 9px;
+    padding: 4px 2px;
+  }
+  .rf-calendar-weekday {
+    font-size: 8px;
+    padding: 7px 0;
+  }
+  .rf-event-row {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .rf-event-row > div {
+    min-width: 150px;
+  }
+}
