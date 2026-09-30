@@ -1,4 +1,5 @@
 'use client';
+import { request } from '@/shared/services/api';
 import Link from 'next/link';
 import { useSyncExternalStore } from 'react';
 import { getProjects, getEvents } from '@/shared/services/contentService';
@@ -6,6 +7,11 @@ import { useResource } from '@/shared/hooks/useResource';
 import { projectStates, dateLabel } from '@/shared/constants/content';
 import { Empty, PageHeader, ResourceState } from '@/shared/components/ui/ui';
 import './home.css';
+const getAnnouncements = (signal: AbortSignal) =>
+  request<{ data: { id: string; titulo: string; contenido: string }[] }>(
+    '/announcements?limit=3',
+    { signal },
+  );
 const subscribe = () => () => {};
 const today = () =>
   new Intl.DateTimeFormat('es-CL', {
@@ -13,6 +19,7 @@ const today = () =>
     timeZone: 'America/Santiago',
   }).format(new Date());
 export default function Home() {
+  const announcements = useResource(getAnnouncements);
   const projects = useResource(getProjects);
   const events = useResource(getEvents);
   const date = useSyncExternalStore(
@@ -60,10 +67,18 @@ export default function Home() {
             <h2>Anuncios del club</h2>
             <Link href="/anuncios/">Ver todos →</Link>
           </div>
-          <Empty title="Tu punto de encuentro">
-            Los anuncios internos estarán disponibles cuando se habilite su
-            gestión.
-          </Empty>
+          <ResourceState {...announcements} retry={announcements.reload} />
+          {announcements.data?.data.length === 0 && (
+            <Empty title="Sin anuncios vigentes">
+              Las novedades del club aparecerán aquí.
+            </Empty>
+          )}
+          {announcements.data?.data.map((item) => (
+            <article key={item.id}>
+              <h3>{item.titulo}</h3>
+              <p className="rf-prose">{item.contenido}</p>
+            </article>
+          ))}
         </section>
         <section className="rf-panel">
           <div className="rf-panel-heading">

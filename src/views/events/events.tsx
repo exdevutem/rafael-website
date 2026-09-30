@@ -1,4 +1,5 @@
 'use client';
+import { useSession } from '@/shared/auth/session';
 import { useState } from 'react';
 import { useResource } from '@/shared/hooks/useResource';
 import { getEvents } from '@/shared/services/contentService';
@@ -15,6 +16,7 @@ import type { ClubEvent } from '@/shared/types/content';
 import EventForm from './eventForm';
 import './events.css';
 export default function Events() {
+  const { can } = useSession();
   const resource = useResource(getEvents);
   const [view, setView] = useState('calendar');
   const [query, setQuery] = useState('');
@@ -68,6 +70,7 @@ export default function Events() {
           </button>
         </div>
         <button
+          disabled={!can('events.manage')}
           className="rf-button rf-primary"
           onClick={() => {
             setEditing(undefined);

@@ -1,0 +1,32 @@
+.rf-login {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: radial-gradient(ellipse at top, #292044 0, transparent 65%);
+}
+.rf-login-card {
+  width: min(100%, 480px);
+  display: grid;
+  gap: 20px;
+  padding: 40px;
+  border: 1px solid #ffffff20;
+  border-radius: 24px;
+  background: #14141f;
+  box-shadow: 0 24px 80px #0004;
+}
+.rf-login-card h1 {
+  font-size: 2rem;
+  margin: 0;
+}
+.rf-login-card p {
+  line-height: 1.7;
+  margin: 0;
+}
+.rf-login-card small {
+  opacity: 0.6;
+}
+.rf-login-card .rf-button {
+  justify-content: center;
+  text-align: center;
+}

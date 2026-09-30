@@ -1,4 +1,5 @@
 'use client';
+import { useSession, canVisit } from '@/shared/auth/session';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -15,6 +16,7 @@ const items = [
   ['/configuracion/', 'Configuración', '⚙'],
 ];
 export default function Sidebar() {
+  const { can, logout } = useSession();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const panel = useRef<HTMLElement>(null);
@@ -110,27 +112,29 @@ export default function Sidebar() {
         </div>
         <span className="rf-nav-caption">ESPACIO DEL CLUB</span>
         <nav aria-label="Navegación principal">
-          {items.map(([href, label, icon]) => (
-            <Link
-              key={href}
-              href={href}
-              onClick={() => setOpen(false)}
-              aria-current={
-                (
-                  href === '/'
-                    ? pathname === '/'
-                    : pathname.startsWith(href.slice(0, -1))
-                )
-                  ? 'page'
-                  : undefined
-              }
-            >
-              <span className="rf-nav-icon" aria-hidden="true">
-                {icon}
-              </span>
-              {label}
-            </Link>
-          ))}
+          {items
+            .filter(([href]) => canVisit(href, can))
+            .map(([href, label, icon]) => (
+              <Link
+                key={href}
+                href={href}
+                onClick={() => setOpen(false)}
+                aria-current={
+                  (
+                    href === '/'
+                      ? pathname === '/'
+                      : pathname.startsWith(href.slice(0, -1))
+                  )
+                    ? 'page'
+                    : undefined
+                }
+              >
+                <span className="rf-nav-icon" aria-hidden="true">
+                  {icon}
+                </span>
+                {label}
+              </Link>
+            ))}
         </nav>
         <div className="rf-sidebar-bottom">
           <a href="https://exdev.cl" target="_blank" rel="noreferrer">
@@ -147,6 +151,9 @@ export default function Sidebar() {
               <small>Mi perfil</small>
             </span>
           </Link>
+          <button className="rf-button" onClick={() => void logout()}>
+            Cerrar sesión
+          </button>
           <div className="rf-sidebar-foot">Club de Desarrollo Experimental</div>
         </div>
       </aside>

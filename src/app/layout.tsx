@@ -1,3 +1,5 @@
+import { SessionProvider } from '@/shared/auth/session';
+import '@/shared/auth/login.css';
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import Footer from '@/shared/layouts/footer/footer';
@@ -15,13 +17,15 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <a className="rf-skip" href="#contenido">
           Saltar al contenido
         </a>
-        <Sidebar />
-        <div className="rafael-body">
-          <main id="contenido" className="rafael-content">
-            {children}
-          </main>
-          <Footer />
-        </div>
+        <SessionProvider>
+          <Sidebar />
+          <div className="rafael-body">
+            <main id="contenido" className="rafael-content">
+              {children}
+            </main>
+            <Footer />
+          </div>
+        </SessionProvider>
       </body>
     </html>
   );

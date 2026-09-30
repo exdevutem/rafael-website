@@ -1,4 +1,5 @@
 'use client';
+import { useSession } from '@/shared/auth/session';
 import { useState } from 'react';
 import { useResource } from '@/shared/hooks/useResource';
 import { getProjects } from '@/shared/services/contentService';
@@ -16,6 +17,7 @@ import CreateForm from '@/shared/components/createForms/createForms';
 import type { Project } from '@/shared/types/content';
 import './projects.css';
 export default function Projects() {
+  const { can } = useSession();
   const resource = useResource(getProjects);
   const [query, setQuery] = useState('');
   const [state, setState] = useState('');
@@ -40,6 +42,7 @@ export default function Projects() {
       >
         <ViewToggle value={view} onChange={setView} />
         <button
+          disabled={!can('projects.manage')}
           className="rf-button rf-primary"
           onClick={() => {
             setEditing(undefined);
@@ -179,6 +182,7 @@ export default function Projects() {
             <p>No hay integrantes visibles en el equipo.</p>
           )}
           <button
+            disabled={!can('projects.manage')}
             className="rf-button rf-primary"
             onClick={() => {
               setEditing(selected);

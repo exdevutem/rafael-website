@@ -1,4 +1,5 @@
 'use client';
+import { useSession } from '@/shared/auth/session';
 import { useState } from 'react';
 import { getMembers } from '@/shared/services/contentService';
 import { useResource } from '@/shared/hooks/useResource';
@@ -21,6 +22,7 @@ const initials = (name: string) =>
     .map((n) => n[0])
     .join('');
 export default function Members() {
+  const { can } = useSession();
   const resource = useResource(getMembers);
   const [query, setQuery] = useState('');
   const [role, setRole] = useState('');
@@ -50,6 +52,7 @@ export default function Members() {
       >
         <ViewToggle value={view} onChange={setView} />
         <button
+          disabled={!can('members.manage')}
           className="rf-button rf-primary"
           onClick={() => {
             setEditing(undefined);
@@ -191,6 +194,7 @@ export default function Members() {
           </dl>
           <p>{selected.correo_institucional || 'Sin correo institucional'}</p>
           <button
+            disabled={!can('members.manage')}
             className="rf-button rf-primary"
             onClick={() => {
               setEditing(selected);

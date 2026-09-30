@@ -1,4 +1,7 @@
 'use client';
+import VotingResults from './votingResults';
+import ApplicationActions from './applicationActions';
+import { useSession } from '@/shared/auth/session';
 import { useCallback, useState } from 'react';
 import { getApplications, getPeriods } from '@/shared/services/contentService';
 import { useResource } from '@/shared/hooks/useResource';
@@ -14,6 +17,15 @@ import {
 import type { Application, Period } from '@/shared/types/content';
 import PeriodForm from './periodForm';
 export default function Applications() {
+  const { can } = useSession();
+  return can('applications.read') ? (
+    <ApplicationManagement />
+  ) : (
+    <VotingResults />
+  );
+}
+function ApplicationManagement() {
+  const { can } = useSession();
   const [query, setQuery] = useState(''),
     [search, setSearch] = useState(''),
     [state, setState] = useState(''),
@@ -38,12 +50,17 @@ export default function Applications() {
         title="Nuevas personas, nuevas ideas"
         description="Consulta las candidaturas y prepara las próximas convocatorias."
       >
-        <button className="rf-button rf-primary" onClick={() => setForm({})}>
+        <button
+          disabled={!can('application_periods.manage')}
+          className="rf-button rf-primary"
+          onClick={() => setForm({})}
+        >
           + Nuevo período
         </button>
       </PageHeader>
       <Notice>
-        La votación y la resolución de candidaturas siguen pendientes de IAM.
+        Los votos y comentarios son visibles para los miembros. Resolver una
+        candidatura cierra su votación.
       </Notice>
       {success && (
         <div className="rf-success" role="status">
@@ -83,7 +100,10 @@ export default function Applications() {
                           : item.estado_periodo}
                       </td>
                       <td>
-                        <button onClick={() => setForm({ period: item })}>
+                        <button
+                          disabled={!can('application_periods.manage')}
+                          onClick={() => setForm({ period: item })}
+                        >
                           Editar período
                         </button>
                       </td>
@@ -287,10 +307,13 @@ export default function Applications() {
               <p className="rf-prose">{value || 'Sin información.'}</p>
             </section>
           ))}
-          <Notice>
-            La resolución y los votos estarán disponibles al conectar los
-            permisos del club.
-          </Notice>
+          <ApplicationActions
+            application={selected}
+            onChanged={() => {
+              setSelected(null);
+              resource.reload();
+            }}
+          />
         </Modal>
       )}
       {form && (

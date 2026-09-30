@@ -1,4 +1,5 @@
 'use client';
+import { useSession } from '@/shared/auth/session';
 import { useState } from 'react';
 import {
   Empty,
@@ -18,6 +19,9 @@ function CatalogPanel({
   kind: 'roles' | 'specialties';
   title: string;
 }) {
+  const { can } = useSession();
+  const permission =
+    kind === 'roles' ? 'club_roles.manage' : 'specialties.manage';
   const resource = useResource(kind === 'roles' ? getRoles : getSpecialties);
   const [form, setForm] = useState<{ item?: CatalogItem } | null>(null);
   const [success, setSuccess] = useState('');
@@ -25,7 +29,11 @@ function CatalogPanel({
     <section className="rf-panel">
       <div className="rf-panel-heading">
         <h2>{title}</h2>
-        <button className="rf-button" onClick={() => setForm({})}>
+        <button
+          disabled={!can(permission)}
+          className="rf-button"
+          onClick={() => setForm({})}
+        >
           + {kind === 'roles' ? 'Nuevo' : 'Nueva'}
         </button>
       </div>
@@ -81,7 +89,7 @@ export default function Settings() {
       />
       <Notice>
         Los roles describen la relación con ExDev. Los permisos de acceso se
-        gestionarán en IAM.
+        gestionan en ExDev ID.
       </Notice>
       <div className="rf-two-columns">
         <CatalogPanel kind="roles" title="Roles del club" />
@@ -89,7 +97,10 @@ export default function Settings() {
       </div>
       <section className="rf-panel rf-section-gap">
         <h2>Permisos de acceso</h2>
-        <p>La integración con el servicio de identidad está pendiente.</p>
+        <p>
+          Tu sesión y permisos están conectados a ExDev ID. La asignación de
+          accesos se realiza mediante el procedimiento administrativo de IAM.
+        </p>
       </section>
     </>
   );

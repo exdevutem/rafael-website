@@ -1,4 +1,5 @@
 'use client';
+import { useSession } from '@/shared/auth/session';
 import { useState } from 'react';
 import {
   Empty,
@@ -11,6 +12,7 @@ import { useResource } from '@/shared/hooks/useResource';
 import type { Sponsor } from '@/shared/types/content';
 import SponsorForm from './sponsorForm';
 export default function Sponsors() {
+  const { can } = useSession();
   const resource = useResource(getSponsors);
   const [form, setForm] = useState<{ sponsor?: Sponsor } | null>(null);
   const [success, setSuccess] = useState('');
@@ -27,7 +29,11 @@ export default function Sponsors() {
         title="Quienes apoyan nuestras ideas"
         description="Administra los apoyos del club y su presencia en exdev.cl."
       >
-        <button className="rf-button rf-primary" onClick={() => setForm({})}>
+        <button
+          className="rf-button rf-primary"
+          disabled={!can('sponsors.manage')}
+          onClick={() => setForm({})}
+        >
           + Nuevo patrocinador
         </button>
       </PageHeader>
@@ -52,6 +58,7 @@ export default function Sponsors() {
               <button
                 key={p.id}
                 className="rf-panel rf-card-button"
+                disabled={!can('sponsors.manage')}
                 onClick={() => setForm({ sponsor: p })}
               >
                 <Badge value={p.estado_patrocinador} />
