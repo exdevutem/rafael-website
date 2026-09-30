@@ -8,6 +8,54 @@ import ts from 'typescript';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 
+test('initial 401 finishes loading even when invalidation supersedes refresh', async () => {
+  const states = [];
+  const effects = [];
+  const browser = new EventTarget();
+  browser.location = { search: '' };
+  const previousWindow = global.window;
+  const previousDocument = global.document;
+  global.window = browser;
+  global.document = new EventTarget();
+  const { HttpError, authFailure } = load('src/shared/services/authService.ts', {});
+  const { SessionProvider } = load('src/shared/auth/session.tsx', {
+    react: {
+      createContext: () => ({}),
+      useContext: () => ({}),
+      useRef: () => ({ current: 0 }),
+      useCallback: (fn) => fn,
+      useState: (initial) => {
+        const index = states.push(initial) - 1;
+        return [initial, (value) => { states[index] = value; }];
+      },
+      useEffect: (fn) => effects.push(fn),
+    },
+    'next/link': { __esModule: true, default: () => null },
+    'next/navigation': { usePathname: () => '/' },
+    '@/shared/services/authService': {
+      AUTH_URL: '', HttpError,
+      authRequest: async () => {
+        await Promise.resolve();
+        authFailure(401, 'SESSION_REQUIRED');
+        throw new HttpError(401, 'SESSION_REQUIRED', 'No session');
+      },
+    },
+  });
+  const cleanups = [];
+  try {
+    SessionProvider({ children: null });
+    effects.forEach((effect) => cleanups.push(effect()));
+    await new Promise((resolve) => setImmediate(resolve));
+    assert.equal(states[0], null);
+    assert.equal(states[1], false, 'login must become available after a 401');
+    assert.ok(states[2].includes('Vuelve a ingresar'));
+  } finally {
+    cleanups.forEach((cleanup) => cleanup?.());
+    global.window = previousWindow;
+    global.document = previousDocument;
+  }
+});
+
 function load(file, mocks) {
   const filename = path.resolve(file);
   const source = ts.transpileModule(fs.readFileSync(filename, 'utf8'), {

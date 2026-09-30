@@ -74,6 +74,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     const invalid = () => {
       generation.current++;
       setSession(null);
+      setLoading(false);
       setError('Tu sesión terminó o tu acceso cambió. Vuelve a ingresar.');
     };
     const visible = () => {
