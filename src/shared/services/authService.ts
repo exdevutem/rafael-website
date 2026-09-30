@@ -23,11 +23,7 @@ export function authFailure(status: number, code: string) {
     typeof window !== 'undefined' &&
     (status === 401 ||
       (status === 403 &&
-        [
-          'ACCESS_NOT_ENABLED',
-          'MEMBER_NOT_ACTIVE',
-          'ACCESS_OR_CSRF_DENIED',
-        ].includes(code)))
+        ['ACCESS_NOT_ENABLED', 'MEMBER_NOT_ACTIVE'].includes(code)))
   )
     window.dispatchEvent(new Event('rafael-session-invalid'));
 }

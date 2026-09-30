@@ -1,5 +1,6 @@
 'use client';
 import { request } from '@/shared/services/api';
+import { useSession, canVisit } from '@/shared/auth/session';
 import Link from 'next/link';
 import { useSyncExternalStore } from 'react';
 import { getProjects, getEvents } from '@/shared/services/contentService';
@@ -19,9 +20,10 @@ const today = () =>
     timeZone: 'America/Santiago',
   }).format(new Date());
 export default function Home() {
+  const { can } = useSession();
   const announcements = useResource(getAnnouncements);
-  const projects = useResource(getProjects);
-  const events = useResource(getEvents);
+  const projects = useResource(getProjects, can('projects.read'));
+  const events = useResource(getEvents, can('events.read'));
   const date = useSyncExternalStore(
     subscribe,
     today,
@@ -44,12 +46,16 @@ export default function Home() {
         title="Bienvenido a Rafael"
         description={`${date} · así va el club hoy.`}
       >
-        <Link className="rf-button" href="/miembros/">
-          Ver miembros
-        </Link>
-        <Link className="rf-button rf-primary" href="/proyectos/">
-          Gestionar proyectos <span aria-hidden="true">↗</span>
-        </Link>
+        {can('members.read') && (
+          <Link className="rf-button" href="/miembros/">
+            Ver miembros
+          </Link>
+        )}
+        {can('projects.read') && (
+          <Link className="rf-button rf-primary" href="/proyectos/">
+            Gestionar proyectos <span aria-hidden="true">↗</span>
+          </Link>
+        )}
       </PageHeader>
       <div className="rf-home-banner">
         <span className="rf-home-dot" />
@@ -65,7 +71,9 @@ export default function Home() {
         <section className="rf-panel">
           <div className="rf-panel-heading">
             <h2>Anuncios del club</h2>
-            <Link href="/anuncios/">Ver todos →</Link>
+            {canVisit('/anuncios', can) && (
+              <Link href="/anuncios/">Ver todos →</Link>
+            )}
           </div>
           <ResourceState {...announcements} retry={announcements.reload} />
           {announcements.data?.data.length === 0 && (
@@ -80,65 +88,69 @@ export default function Home() {
             </article>
           ))}
         </section>
-        <section className="rf-panel">
-          <div className="rf-panel-heading">
-            <h2>Proyectos por estado</h2>
-            <Link href="/proyectos/">Ver todos →</Link>
-          </div>
-          <ResourceState {...projects} retry={projects.reload} />
-          {projects.data && (
-            <>
-              <div className="rf-home-stats">
-                {Object.entries(projectStates).map(([value, label]) => {
-                  const count = projects.data!.filter(
-                    (p) => p.estado === value,
-                  ).length;
-                  return (
-                    <div key={value}>
-                      <span>{label}</span>
-                      <div className="rf-home-track">
-                        <span
-                          className={`rf-home-bar rf-home-bar-${value}`}
-                          style={{
-                            width: `${(count / Math.max(projects.data!.length, 1)) * 100}%`,
-                          }}
-                        />
+        {can('projects.read') && (
+          <section className="rf-panel">
+            <div className="rf-panel-heading">
+              <h2>Proyectos por estado</h2>
+              <Link href="/proyectos/">Ver todos →</Link>
+            </div>
+            <ResourceState {...projects} retry={projects.reload} />
+            {projects.data && (
+              <>
+                <div className="rf-home-stats">
+                  {Object.entries(projectStates).map(([value, label]) => {
+                    const count = projects.data!.filter(
+                      (p) => p.estado === value,
+                    ).length;
+                    return (
+                      <div key={value}>
+                        <span>{label}</span>
+                        <div className="rf-home-track">
+                          <span
+                            className={`rf-home-bar rf-home-bar-${value}`}
+                            style={{
+                              width: `${(count / Math.max(projects.data!.length, 1)) * 100}%`,
+                            }}
+                          />
+                        </div>
+                        <strong>{count}</strong>
                       </div>
-                      <strong>{count}</strong>
+                    );
+                  })}
+                </div>
+                <p className="rf-home-caption">
+                  Sobre los {projects.data.length} proyectos del club.
+                </p>
+              </>
+            )}
+          </section>
+        )}
+        {can('events.read') && (
+          <section className="rf-panel">
+            <div className="rf-panel-heading">
+              <h2>Próximos eventos</h2>
+              <Link href="/eventos/">Ver calendario →</Link>
+            </div>
+            <ResourceState {...events} retry={events.reload} />
+            {events.data &&
+              (upcoming.length ? (
+                upcoming.map((e) => (
+                  <Link className="rf-home-event" key={e.id} href="/eventos/">
+                    <span>{e.fecha_texto || dateLabel(e.fecha_inicio)}</span>
+                    <div>
+                      <strong>{e.titulo_evento}</strong>
+                      <small>{e.tipo_evento}</small>
                     </div>
-                  );
-                })}
-              </div>
-              <p className="rf-home-caption">
-                Sobre los {projects.data.length} proyectos del club.
-              </p>
-            </>
-          )}
-        </section>
-        <section className="rf-panel">
-          <div className="rf-panel-heading">
-            <h2>Próximos eventos</h2>
-            <Link href="/eventos/">Ver calendario →</Link>
-          </div>
-          <ResourceState {...events} retry={events.reload} />
-          {events.data &&
-            (upcoming.length ? (
-              upcoming.map((e) => (
-                <Link className="rf-home-event" key={e.id} href="/eventos/">
-                  <span>{e.fecha_texto || dateLabel(e.fecha_inicio)}</span>
-                  <div>
-                    <strong>{e.titulo_evento}</strong>
-                    <small>{e.tipo_evento}</small>
-                  </div>
-                  <span aria-hidden="true">↗</span>
-                </Link>
-              ))
-            ) : (
-              <Empty title="Sin próximos eventos">
-                Aquí aparecerán las próximas actividades del club.
-              </Empty>
-            ))}
-        </section>
+                    <span aria-hidden="true">↗</span>
+                  </Link>
+                ))
+              ) : (
+                <Empty title="Sin próximos eventos">
+                  Aquí aparecerán las próximas actividades del club.
+                </Empty>
+              ))}
+          </section>
+        )}
         <section className="rf-panel">
           <div className="rf-panel-heading">
             <h2>Accesos del club</h2>
@@ -158,15 +170,18 @@ export default function Home() {
                 'Consulta las candidaturas del club',
               ],
               ['/configuracion/', 'Catálogos', 'Roles y especialidades'],
-            ].map(([href, title, description]) => (
-              <Link key={href} href={href}>
-                <div>
-                  <strong>{title}</strong>
-                  <small>{description}</small>
-                </div>
-                <span aria-hidden="true">→</span>
-              </Link>
-            ))}
+              ['/perfil/', 'Mi perfil', 'Consulta tu información personal'],
+            ]
+              .filter(([href]) => canVisit(href, can))
+              .map(([href, title, description]) => (
+                <Link key={href} href={href}>
+                  <div>
+                    <strong>{title}</strong>
+                    <small>{description}</small>
+                  </div>
+                  <span aria-hidden="true">→</span>
+                </Link>
+              ))}
           </div>
         </section>
       </div>

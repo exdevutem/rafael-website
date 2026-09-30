@@ -10,6 +10,7 @@ import type { Member } from '@/shared/types/content';
 const load = (signal: AbortSignal) =>
   request<{ data: Member }>('/members/me', { signal });
 export default function Profile() {
+  const { can } = useSession();
   const resource = useResource(load);
   return (
     <>
@@ -19,12 +20,19 @@ export default function Profile() {
         description="Tu información, especialidades y visibilidad."
       />
       <ResourceState {...resource} retry={resource.reload} />
-      {resource.data && (
-        <ProfileForm
-          key={JSON.stringify(resource.data.data)}
-          member={resource.data.data}
-        />
-      )}
+      {resource.data &&
+        (can('profile.write_own') && can('specialties.read') ? (
+          <ProfileForm
+            key={JSON.stringify(resource.data.data)}
+            member={resource.data.data}
+          />
+        ) : (
+          <section className="rf-panel">
+            <h2>{resource.data.data.nombre}</h2>
+            <p>{resource.data.data.carrera}</p>
+            <p>Tu cuenta está vinculada a este miembro de ExDev.</p>
+          </section>
+        ))}
     </>
   );
 }

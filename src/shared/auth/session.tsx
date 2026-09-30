@@ -61,6 +61,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
           );
       })
       .finally(() => {
+        if (version !== generation.current) return;
         setPending(
           new URLSearchParams(window.location.search).get('auth') ===
             'ACCESS_PENDING',
@@ -131,9 +132,10 @@ export function SessionProvider({ children }: { children: ReactNode }) {
               </a>
               {pending && (
                 <div className="rf-notice">
-                  Tu cuenta institucional está verificada. Falta vincularla con
-                  tu miembro y habilitar el acceso a Rafael. Cuando esté listo,
-                  vuelve a ingresar.
+                  Vuelve a ingresar con Google UTEM. Si tu correo institucional
+                  corresponde a un miembro activo, el acceso se habilitará
+                  automáticamente. Si no puedes entrar, solicita revisar tu
+                  ficha.
                 </div>
               )}
               {error && <p role="alert">{error}</p>}

@@ -1,6 +1,9 @@
 'use client';
 import { useCallback, useEffect, useState } from 'react';
-export function useResource<T>(loader: (signal: AbortSignal) => Promise<T>) {
+export function useResource<T>(
+  loader: (signal: AbortSignal) => Promise<T>,
+  enabled = true,
+) {
   const [state, setState] = useState<{
     source: typeof loader;
     data: T | null;
@@ -9,6 +12,7 @@ export function useResource<T>(loader: (signal: AbortSignal) => Promise<T>) {
   }>({ source: loader, data: null, loading: true, error: null });
   const [version, setVersion] = useState(0);
   useEffect(() => {
+    if (!enabled) return;
     const controller = new AbortController();
     loader(controller.signal)
       .then((data) => {
@@ -28,7 +32,7 @@ export function useResource<T>(loader: (signal: AbortSignal) => Promise<T>) {
           });
       });
     return () => controller.abort();
-  }, [loader, version]);
+  }, [loader, version, enabled]);
   const reload = useCallback(() => {
     setState((previous) => ({
       ...previous,
@@ -38,6 +42,7 @@ export function useResource<T>(loader: (signal: AbortSignal) => Promise<T>) {
     }));
     setVersion((value) => value + 1);
   }, []);
+  if (!enabled) return { data: null, loading: false, error: null, reload };
   return state.source === loader
     ? { data: state.data, loading: state.loading, error: state.error, reload }
     : { data: null, loading: true, error: null, reload };
