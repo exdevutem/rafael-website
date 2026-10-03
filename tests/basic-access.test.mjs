@@ -90,6 +90,25 @@ test('disabled resource does not run its loader or expose previous data', () => 
 const Link = ({ href, children }) => React.createElement('a', { href }, children);
 const Panel = ({ children, title }) => React.createElement('section', null, title, children);
 const ui = { PageHeader: Panel, ResourceState: () => null, Empty: Panel, Field: Panel };
+
+for (const [administrator, previous, allowed] of [
+  [false, null, false], [false, 'trainee', false], [true, null, true],
+]) {
+  test(`member form limits representative option: administrator=${administrator}, previous=${previous}`, () => {
+    const { default: Form } = load('src/shared/components/createForms/memberForm.tsx', {
+      '@/shared/auth/session': { useSession: () => ({ can: () => true, session: { roles: administrator ? ['administrador_rafael'] : ['representante_rafael'] } }) },
+      '@/shared/components/ui/ui': { ...ui, Modal: Panel, Notice: Panel },
+      '@/shared/services/contentService': { getRoles: () => {}, getSpecialties: () => {}, saveMember: () => {} },
+      '@/shared/hooks/useResource': { useResource: () => ({ data: null, loading: false }) },
+      '@/shared/hooks/useSave': { useSave: () => ({ busy: false }) },
+    });
+    const html = renderToStaticMarkup(React.createElement(Form, { member: previous ? { rafael_access_level: previous } : undefined, onClose: () => {}, onSaved: () => {} }));
+    assert.equal(html.includes('value="representante"'), allowed);
+    assert.ok(html.includes('value="trainee"'));
+    assert.ok(html.includes('value="miembro"'));
+    assert.ok(!html.includes('value="administrador_rafael"'));
+  });
+}
 test('basic member reaches home without enabling administrative loaders or links', () => {
   const privateCalls = [];
   const getProjects = () => {}, getEvents = () => {};

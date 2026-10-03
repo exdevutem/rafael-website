@@ -3,6 +3,8 @@ export const AUTH_URL = (process.env.NEXT_PUBLIC_AUTH_URL || '').replace(
   '',
 );
 export interface Session {
+  roles?: string[];
+  accessLevel?: 'trainee' | 'miembro' | 'representante' | null;
   user: { id: string };
   member: { id: string };
   application: string;

@@ -7,6 +7,8 @@ export type ProjectState =
   | 'completado'
   | 'cancelado';
 export interface Member {
+  rafael_access_level?: 'trainee' | 'miembro' | 'representante' | null;
+  iam_linked?: boolean;
   correo_institucional: string | null;
   estado: 'activo' | 'inactivo';
   perfil_publico: boolean;
@@ -73,6 +75,7 @@ export interface Application {
   created_at: string;
 }
 export interface CreateMember {
+  accessLevel?: 'trainee' | 'miembro' | 'representante' | null;
   nombre: string;
   correoInstitucional: string | null;
   carrera: string;

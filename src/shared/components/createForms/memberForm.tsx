@@ -1,4 +1,5 @@
 'use client';
+import { useSession } from '@/shared/auth/session';
 import { useState, type FormEvent } from 'react';
 import { Field, Modal, Notice, ResourceState } from '@/shared/components/ui/ui';
 import {
@@ -25,6 +26,12 @@ export default function MemberForm({
   onClose: () => void;
   onSaved: (message: string) => void;
 }) {
+  const { session, can } = useSession();
+  const isAdministrator =
+    session?.roles?.includes('administrador_rafael') ?? false;
+  const canChangeLevel =
+    can('access_levels.manage') &&
+    (isAdministrator || member?.rafael_access_level !== 'representante');
   const catalogs = useResource(loadCatalogs);
   const mutation = useSave();
   const [published, setPublished] = useState(member?.perfil_publico ?? false);
@@ -50,6 +57,12 @@ export default function MemberForm({
             fotoPublica: published && photo,
             roleIds: roles,
             specialtyIds: specialties,
+            ...(canChangeLevel
+              ? {
+                  accessLevel: (text('accessLevel') ||
+                    null) as Member['rafael_access_level'],
+                }
+              : {}),
           },
           member?.id,
         ),
@@ -107,6 +120,31 @@ export default function MemberForm({
           </select>
         </Field>
         <ResourceState {...catalogs} retry={catalogs.reload} />
+        <Field label="Nivel de acceso a Rafael">
+          <select
+            name="accessLevel"
+            defaultValue={member?.rafael_access_level ?? ''}
+            disabled={!canChangeLevel}
+          >
+            <option value="">Sin nivel asignado · acceso básico</option>
+            <option value="trainee">Trainee</option>
+            <option value="miembro">Miembro</option>
+            {(isAdministrator ||
+              member?.rafael_access_level === 'representante') && (
+              <option value="representante">Representante</option>
+            )}
+          </select>
+          <small>
+            Define los permisos de Rafael. Solo el jefe del club puede asignar o
+            cambiar el nivel Representante.
+          </small>
+          {!member?.iam_linked && (
+            <small>
+              Se aplicará cuando la persona ingrese con su cuenta institucional
+              verificada.
+            </small>
+          )}
+        </Field>
         {catalogs.data && (
           <div className="rf-form-grid">
             {[
