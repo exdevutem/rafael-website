@@ -106,6 +106,10 @@ for (const [administrator, previous, allowed] of [
     assert.equal(html.includes('value="representante"'), allowed);
     assert.ok(html.includes('value="trainee"'));
     assert.ok(html.includes('value="miembro"'));
+    assert.ok(html.includes('value="titulado"'));
+    assert.ok(html.includes('name="memberType"'));
+    assert.ok(!html.includes('name="accessLevel"'));
+    assert.ok(!html.includes('Roles del club'));
     assert.ok(!html.includes('value="administrador_rafael"'));
   });
 }

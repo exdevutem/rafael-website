@@ -7,6 +7,7 @@ export type ProjectState =
   | 'completado'
   | 'cancelado';
 export interface Member {
+  member_type?: 'trainee' | 'miembro' | 'titulado' | 'representante' | null;
   rafael_access_level?: 'trainee' | 'miembro' | 'representante' | null;
   iam_linked?: boolean;
   correo_institucional: string | null;
@@ -75,13 +76,14 @@ export interface Application {
   created_at: string;
 }
 export interface CreateMember {
+  memberType?: 'trainee' | 'miembro' | 'titulado' | 'representante';
   accessLevel?: 'trainee' | 'miembro' | 'representante' | null;
   nombre: string;
   correoInstitucional: string | null;
   carrera: string;
   anioIngresoCarrera: number | null;
   estado: 'activo' | 'inactivo';
-  roleIds: Id[];
+  roleIds?: Id[];
   specialtyIds: Id[];
   perfilPublico: boolean;
   fotoPublica: boolean;

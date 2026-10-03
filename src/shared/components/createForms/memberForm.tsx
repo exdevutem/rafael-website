@@ -2,20 +2,12 @@
 import { useSession } from '@/shared/auth/session';
 import { useState, type FormEvent } from 'react';
 import { Field, Modal, Notice, ResourceState } from '@/shared/components/ui/ui';
-import {
-  getRoles,
-  getSpecialties,
-  saveMember,
-} from '@/shared/services/contentService';
+import { getSpecialties, saveMember } from '@/shared/services/contentService';
 import { useResource } from '@/shared/hooks/useResource';
 import { useSave } from '@/shared/hooks/useSave';
 import type { Member } from '@/shared/types/content';
 const loadCatalogs = async (signal: AbortSignal) => {
-  const [roles, specialties] = await Promise.all([
-    getRoles(signal),
-    getSpecialties(signal),
-  ]);
-  return { roles, specialties };
+  return { specialties: await getSpecialties(signal) };
 };
 export default function MemberForm({
   member,
@@ -36,7 +28,6 @@ export default function MemberForm({
   const mutation = useSave();
   const [published, setPublished] = useState(member?.perfil_publico ?? false);
   const [photo, setPhoto] = useState(member?.foto_publica ?? false);
-  const [roles, setRoles] = useState((member?.role_ids ?? []).map(String));
   const [specialties, setSpecialties] = useState(
     (member?.specialty_ids ?? []).map(String),
   );
@@ -55,12 +46,12 @@ export default function MemberForm({
             estado: text('estado') as Member['estado'],
             perfilPublico: published,
             fotoPublica: published && photo,
-            roleIds: roles,
             specialtyIds: specialties,
             ...(canChangeLevel
               ? {
-                  accessLevel: (text('accessLevel') ||
-                    null) as Member['rafael_access_level'],
+                  memberType: text('memberType') as NonNullable<
+                    Member['member_type']
+                  >,
                 }
               : {}),
           },
@@ -120,23 +111,28 @@ export default function MemberForm({
           </select>
         </Field>
         <ResourceState {...catalogs} retry={catalogs.reload} />
-        <Field label="Nivel de acceso a Rafael">
+        <Field label="Tipo de miembro">
           <select
-            name="accessLevel"
-            defaultValue={member?.rafael_access_level ?? ''}
+            name="memberType"
+            required
+            defaultValue={
+              member?.member_type ?? member?.rafael_access_level ?? ''
+            }
             disabled={!canChangeLevel}
           >
-            <option value="">Sin nivel asignado · acceso básico</option>
+            <option value="" disabled>
+              Selecciona el tipo de miembro
+            </option>
             <option value="trainee">Trainee</option>
             <option value="miembro">Miembro</option>
+            <option value="titulado">Titulado</option>
             {(isAdministrator ||
               member?.rafael_access_level === 'representante') && (
               <option value="representante">Representante</option>
             )}
           </select>
           <small>
-            Define los permisos de Rafael. Solo el jefe del club puede asignar o
-            cambiar el nivel Representante.
+            Solo el jefe del club puede asignar o cambiar Representante.
           </small>
           {!member?.iam_linked && (
             <small>
@@ -148,12 +144,6 @@ export default function MemberForm({
         {catalogs.data && (
           <div className="rf-form-grid">
             {[
-              {
-                title: 'Roles del club',
-                items: catalogs.data.roles,
-                selected: roles,
-                set: setRoles,
-              },
               {
                 title: 'Especialidades',
                 items: catalogs.data.specialties,
@@ -196,8 +186,8 @@ export default function MemberForm({
           </div>
         )}
         <Notice>
-          Activo significa que sigue perteneciendo al club. Retirar un rol
-          conserva su asignación histórica; no modifica permisos IAM.
+          Miembro y Titulado tienen los mismos permisos. Las especialidades se
+          eligen por separado.
         </Notice>
         <label className="rf-check">
           <input

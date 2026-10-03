@@ -188,9 +188,10 @@ export default function Members() {
               <dd>{selected.roles.join(', ') || 'Sin asignar'}</dd>
             </div>
             <div>
-              <dt>Nivel de acceso a Rafael</dt>
+              <dt>Tipo de miembro</dt>
               <dd>
-                {selected.rafael_access_level ||
+                {selected.member_type ||
+                  selected.rafael_access_level ||
                   'Sin nivel asignado · acceso básico'}
               </dd>
             </div>
